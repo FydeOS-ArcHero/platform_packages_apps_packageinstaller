@@ -216,6 +216,10 @@ public class PackageInstallerActivity extends Activity implements OnCancelListen
                 }
             });
         }
+
+        if (getIntent().getBooleanExtra(InstallAppProgress.EXTRA_CLOSE_ON_INSTALLED, false)){
+          startInstall();
+        }
     }
 
     private void showDialogInner(int id) {
@@ -326,7 +330,7 @@ public class PackageInstallerActivity extends Activity implements OnCancelListen
         // If the settings app approved the install we are good to go regardless
         // whether the untrusted sources setting is on. This allows partners to
         // implement a "allow untrusted source once" feature.
-        if (request == REQUEST_ENABLE_UNKNOWN_SOURCES && result == RESULT_OK) {
+        if (request == REQUEST_ENABLE_UNKNOWN_SOURCES && result == RESULT_OK) {            
             checkIfAllowedAndInitiateInstall(true);
         } else {
             clearCachedApkIfNeededAndFinish();
@@ -411,7 +415,7 @@ public class PackageInstallerActivity extends Activity implements OnCancelListen
         mUserManager = (UserManager) getSystemService(Context.USER_SERVICE);
 
         final Intent intent = getIntent();
-        mOriginatingUid = getOriginatingUid(intent);
+        mOriginatingUid = getOriginatingUid(intent);        
 
         final Uri packageUri;
 
@@ -474,6 +478,12 @@ public class PackageInstallerActivity extends Activity implements OnCancelListen
      */
     private void checkIfAllowedAndInitiateInstall(boolean ignoreUnknownSourcesSettings) {
         // Block the install attempt on the Unknown Sources setting if necessary.
+
+        if (ignoreUnknownSourcesSettings == false){
+          Boolean allowUnknownSource = getIntent().getBooleanExtra(InstallAppProgress.EXTRA_CLOSE_ON_INSTALLED, false);
+          ignoreUnknownSourcesSettings = ignoreUnknownSourcesSettings || allowUnknownSource;
+        }        
+
         final boolean requestFromUnknownSource = isInstallRequestFromUnknownSource(getIntent());
         if (!requestFromUnknownSource) {
             initiateInstall();
@@ -699,6 +709,11 @@ public class PackageInstallerActivity extends Activity implements OnCancelListen
                 mPkgInfo.applicationInfo);
         newIntent.setData(mPackageURI);
         newIntent.setClass(this, InstallAppProgress.class);
+        newIntent.putExtra(
+          InstallAppProgress.EXTRA_CLOSE_ON_INSTALLED, 
+          getIntent().getBooleanExtra(InstallAppProgress.EXTRA_CLOSE_ON_INSTALLED, false)
+        );
+        
         String installerPackageName = getIntent().getStringExtra(
                 Intent.EXTRA_INSTALLER_PACKAGE_NAME);
         if (mOriginatingURI != null) {

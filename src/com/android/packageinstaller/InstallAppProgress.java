@@ -73,6 +73,7 @@ public class InstallAppProgress extends Activity implements View.OnClickListener
             "com.android.packageinstaller.ACTION_INSTALL_COMMIT";
     private static final String BROADCAST_SENDER_PERMISSION =
             "android.permission.INSTALL_PACKAGES";
+    public static final String EXTRA_CLOSE_ON_INSTALLED = "close_on_installed";
     private ApplicationInfo mAppInfo;
     private Uri mPackageURI;
     private ProgressBar mProgressBar;
@@ -101,6 +102,15 @@ public class InstallAppProgress extends Activity implements View.OnClickListener
                         clearCachedApkIfNeededAndFinish();
                         return;
                     }
+
+                    if (getIntent().getBooleanExtra(InstallAppProgress.EXTRA_CLOSE_ON_INSTALLED, false)){
+                      File file = new File(mPackageURI.getPath());
+                      file.delete();
+                      
+                      clearCachedApkIfNeededAndFinish();
+                      return;
+                    }
+                                  
                     // Update the status text
                     mProgressBar.setVisibility(View.GONE);
                     // Show the ok button
